@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IOTA Extension</title>
+  <link href="./dist/output.css" rel="stylesheet">
+</head>
+<body class="w-80 h-96 p-4 border-2 border-white bg-black flex flex-col gap-4 m-0 overflow-hidden text-white font-mono">
+  <header class="border-b-2 border-brand pb-3 flex justify-between items-center">
+    <h1 class="text-2xl font-black uppercase tracking-widest text-brand m-0 leading-none">IOTA</h1>
+    <div class="w-4 h-4 bg-brand border-2 border-white animate-pulse"></div>
+  </header>
+  <main class="flex flex-col gap-4 flex-1 justify-center">
+    <div class="p-4 border-2 border-white bg-black group hover:bg-brand hover:border-brand transition-colors duration-200">
+      <h2 class="text-lg font-bold uppercase mb-1 group-hover:text-black">Status</h2>
+      <p id="status-text" class="text-sm opacity-80 group-hover:text-black font-bold">Disconnected</p>
+    </div>
+    <button id="connect-btn" class="border-2 border-white bg-black hover:bg-white hover:text-black text-white px-4 py-3 font-bold uppercase tracking-wider transition-colors active:translate-y-1">
+      Connect Wallet
+    </button>
+  </main>
+  <footer class="border-t-2 border-white pt-2 text-xs uppercase text-center opacity-70">
+    <span id="uid-text">Manifest V3 Extension</span>
+  </footer>
+  <script src="./src/popup.js"></script>
+</body>
+</html>
