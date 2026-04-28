@@ -1,58 +1,122 @@
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700;800;900&family=Inter:wght@400;600&family=JetBrains+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-hero-display: "Public Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-headline-lg: "Public Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-headline-md: "Public Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-body-lg: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-body-md: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-label-caps: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-headline-lg:  "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md:  "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg:      "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-body-md:      "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-label-caps:   "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:         "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-surface: #f9f9f9;
-  --color-surface-dim: #dadada;
-  --color-surface-bright: #f9f9f9;
-  --color-on-surface: #1a1c1c;
-  --color-on-surface-variant: #4c4546;
-  --color-outline: #7e7576;
-  --color-outline-variant: #cfc4c5;
-  --color-surface-tint: #5e5e5e;
-  
-  --spacing-gutter: 32px;
-  --spacing-margin-page: 64px;
-  --spacing-unit: 8px;
+  /* Surface palette */
+  --color-surface:              #fafafa;
+  --color-surface-dim:          #f0f0f0;
+  --color-surface-bright:       #ffffff;
+  --color-on-surface:           #0d0d0d;
+  --color-on-surface-variant:   #5a5a5a;
+  --color-outline:              #d4d4d4;
+  --color-outline-variant:      #ebebeb;
+  --color-surface-tint:         #6366f1;
+
+  /* Spacing */
+  --spacing-gutter:        32px;
+  --spacing-margin-page:   64px;
+  --spacing-unit:          8px;
   --spacing-container-max: 1440px;
-  --spacing-section-gap: 128px;
+  --spacing-section-gap:   96px;
 }
 
 @layer base {
-  body {
-    @apply bg-surface text-on-surface antialiased selection:bg-black selection:text-white;
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-surface text-on-surface antialiased;
+    selection-color: white;
+    selection-background: #0d0d0d;
+  }
+
+  ::selection {
+    background: #0d0d0d;
+    color: #fff;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 }
 
 @layer utilities {
+  /* Subtle dot grid background */
   .dot-grid {
-    background-image: radial-gradient(#000000 0.5px, transparent 0.5px);
-    background-size: 24px 24px;
-    opacity: 0.03;
+    background-image: radial-gradient(#000 0.8px, transparent 0.8px);
+    background-size: 28px 28px;
+    opacity: 0.025;
   }
-  
+
+  /* Frosted glass card */
   .glass-card {
-    backdrop-filter: blur(40px);
-    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px) saturate(160%);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(0, 0, 0, 0.05);
   }
 
-  .neural-mesh {
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8) 0%, rgba(226, 226, 226, 0.4) 50%, rgba(18, 18, 18, 0.05) 100%);
-    background-size: 100% 100%;
+  /* Elevated card */
+  .card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 20px 48px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
   }
 
+  /* Risk grid square */
   .risk-square {
     width: 14px;
     height: 14px;
-    @apply border border-black/5;
+    border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: background 0.3s ease;
+  }
+
+  /* Stat label */
+  .stat-label {
+    @apply font-hero-display text-[9px] font-black uppercase tracking-[0.2em] text-black/30;
+  }
+
+  /* Pill tag */
+  .tag {
+    @apply inline-flex items-center px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.15em] font-hero-display rounded-sm;
+  }
+
+  .tag-low    { @apply bg-emerald-50 text-emerald-700; }
+  .tag-medium { @apply bg-amber-50   text-amber-700;   }
+  .tag-high   { @apply bg-red-50     text-red-700;     }
+  .tag-neutral { @apply bg-black/5   text-black/60;    }
+
+  /* Focus ring */
+  .focus-ring:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+  }
+
+  /* Score bar */
+  .score-bar {
+    height: 2px;
+    background: rgba(0,0,0,0.06);
+    border-radius: 9999px;
+    overflow: hidden;
   }
 }
-

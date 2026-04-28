@@ -14,21 +14,21 @@ function injectIcon() {
     right: '32px',
     width: '64px',
     height: '64px',
-    backgroundColor: 'rgba(5, 5, 5, 0.75)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '32px', // Pill shape
+    backgroundColor: 'rgba(249, 249, 249, 0.95)',
+    backdropFilter: 'blur(40px)',
+    WebkitBackdropFilter: 'blur(40px)',
+    border: '0.5px solid rgba(26, 28, 28, 0.1)',
+    borderRadius: '32px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    color: '#ffffff',
-    fontFamily: 'monospace',
+    color: '#1a1c1c',
+    fontFamily: 'Public Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     zIndex: '999999',
     overflow: 'hidden',
-    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
-    transition: 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)' // Smooth spring animation
+    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+    transition: 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
   });
 
   // Top header area (always visible, acts as the button)
@@ -45,9 +45,7 @@ function injectIcon() {
 
   // AI/i shield icon approximation in HTML
   header.innerHTML = `
-    <div style="font-family: serif; font-style: italic; font-size: 26px; font-weight: bold; position: relative; line-height: 1; letter-spacing: -2px;">
-      A<span style="font-size: 16px; position: absolute; bottom: -2px; right: -8px;">i</span>
-    </div>
+    <img src="${chrome.runtime.getURL('public/iota-logo.svg')}" alt="IOTA" style="width: 32px; height: 32px; object-fit: contain;" />
   `;
 
   // Content area for reasoning (hidden initially)
@@ -74,32 +72,33 @@ function injectIcon() {
     overflowY: 'auto',
     borderLeft: '1px solid rgba(255, 255, 255, 0.15)',
     paddingLeft: '16px',
+    lineHeight: '0.5px solid rgba(26, 28, 28, 0.1)',
+    paddingLeft: '16px',
     lineHeight: '1.6',
-    color: 'rgba(255, 255, 255, 0.7)'
-  });
-
+    color: 'rgba(26, 28, 28, 0.7)',
+    fontSize: '12px
   // Send to terminal button
   const terminalBtn = document.createElement('button');
   terminalBtn.innerText = 'SEND TO TERMINAL';
   Object.assign(terminalBtn.style, {
     width: '100%',
-    padding: '12px',
-    backgroundColor: '#ffffff',
-    color: '#000000',
+    padding: '12px',1a1c1c',
+    color: '#ffffff',
     border: 'none',
-    borderRadius: '16px',
-    fontWeight: 'bold',
+    borderRadius: '4px',
+    fontWeight: '600',
     cursor: 'pointer',
     textTransform: 'uppercase',
-    letterSpacing: '2px',
-    fontSize: '10px',
-    fontFamily: 'monospace',
+    letterSpacing: '1px',
+    fontSize: '11px',
+    fontFamily: 'Public Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     marginTop: 'auto',
-    display: 'none', // Hidden until scan completes
+    display: 'none',
     transition: 'background-color 0.2s ease'
   });
 
-  terminalBtn.addEventListener('mouseover', () => terminalBtn.style.backgroundColor = '#dddddd');
+  terminalBtn.addEventListener('mouseover', () => terminalBtn.style.backgroundColor = '#2a2c2c');
+  terminalBtn.addEventListener('mouseout', () => terminalBtn.style.backgroundColor = '#1a1c1cd');
   terminalBtn.addEventListener('mouseout', () => terminalBtn.style.backgroundColor = '#ffffff');
 
   terminalBtn.addEventListener('click', (e) => {
@@ -155,9 +154,9 @@ function displayVerticalTicker(status, reasoning) {
   ticker.innerHTML = '';
   clearInterval(typewriterInterval);
 
-  const statusColor = status === 'FLAGGED' ? '#708090' : '#ffffff';
+  const statusColor = status === 'FLAGGED' ? '#e74c3c' : '#27ae60';
   
-  const headerHtml = `<div style="color: ${statusColor}; font-weight: bold; margin-bottom: 12px; letter-spacing: 1px;">[STATUS: ${status}]</div>`;
+  const headerHtml = `<div style="color: ${statusColor}; font-weight: 700; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase;">[${status}]</div>`;
   
   // Ticker animation
   const lines = reasoning.split(' ');

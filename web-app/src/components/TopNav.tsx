@@ -1,29 +1,61 @@
+"use client";
 import { motion } from 'motion/react';
+import { Menu, X } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+
+const SECTION_LABELS: Record<string, string> = {
+  auditor:   'Independent Auditor',
+  history:   'Audit History',
+  search:    'Search Telemetry',
+  extension: 'Browser Extension',
+  dashboard: 'Live Dashboard',
+};
 
 export default function TopNav() {
+  const { section, setSection, sidebarOpen, toggleSidebar, modelName } = useApp();
+  
+  // Format model name for display (remove prefix if Vertex AI)
+  const displayModel = modelName.includes('/') 
+    ? modelName.split('/').pop()?.toUpperCase() 
+    : modelName.toUpperCase();
+
   return (
-    <nav className="fixed top-0 w-full z-50 flex justify-between items-center px-12 py-6 max-w-[1440px] left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-[40px] border-b-[0.5px] border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.04)]">
-      <div className="flex items-center gap-10">
-        <div className="flex items-center gap-3">
-          <img 
-            src="https://lh3.googleusercontent.com/aida/ADBb0uh9sjRo6y2b30rQ4uW0Mtrx_tdhWh_y6XsfILnEjpLPAco0sRwjomT7-CqkSDOkxEwXiIpfgoHycXXBDfh1nMGAJj17YMuaokHirq-Zj4F33bWM3y4QvFSpnkuESKLeT26dbP_TcMIlhfX5Ny4r6yjsQL8rAuDuJM2wEzj7q697YA5Oo8P5V0WeuR2NK7mvB67Q8rXVIBzX2T9mpDInKd3asfUdOQz1Ah2d7WVqC7Fyn1eRtDqKQMAZk0E57WU3VavEUA6lhgzzTA" 
-            alt="IOTA Logo" 
-            className="h-8 w-8 grayscale object-contain"
-          />
-          <div className="text-xl font-bold tracking-tighter text-black uppercase font-hero-display">IOTA</div>
-        </div>
-        <div className="hidden md:flex gap-8 border-l border-black/5 pl-10">
-          <a className="font-hero-display tracking-[0.2em] uppercase text-xs font-light text-black border-b border-black pb-1 transition-opacity duration-300" href="#">AUDITS</a>
-          <a className="font-hero-display tracking-[0.2em] uppercase text-xs font-light text-black/40 hover:text-black transition-opacity duration-300" href="#">TERMINAL</a>
-          <a className="font-hero-display tracking-[0.2em] uppercase text-xs font-light text-black/40 hover:text-black transition-opacity duration-300" href="#">BIAS VECTORS</a>
-          <a className="font-hero-display tracking-[0.2em] uppercase text-xs font-light text-black/40 hover:text-black transition-opacity duration-300" href="#">RESOURCES</a>
-        </div>
+    <motion.nav
+      animate={{ paddingLeft: sidebarOpen ? 304 : 80 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+      className="fixed top-0 right-0 left-0 z-30 hidden xl:flex items-center justify-between pr-8 py-4 bg-white/90 backdrop-blur-[40px] border-b border-black/5"
+    >
+      {/* Left: toggle + breadcrumb */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={toggleSidebar}
+          className="w-8 h-8 rounded-md flex items-center justify-center text-black/40 hover:text-black hover:bg-black/5 transition-all"
+        >
+          {sidebarOpen ? <X size={16} /> : <Menu size={16} />}
+        </button>
+        <div className="h-4 w-px bg-black/10" />
+        <span className="font-hero-display text-xs font-black uppercase tracking-[0.2em] text-black/40">
+          {SECTION_LABELS[section] || 'IOTA'}
+        </span>
       </div>
-      <div className="flex items-center gap-8">
-        <button className="bg-black/5 hover:bg-black hover:text-white border-[0.5px] border-black/10 px-4 py-2 rounded-sm text-[9px] font-bold uppercase tracking-[0.15em] transition-all">
-          SYSTEM STATUS: SYNCED
+
+      {/* Right: model + status */}
+      <div className="flex items-center gap-5">
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ repeat: Infinity, duration: 2.5 }}
+          className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+        />
+        <span className="font-hero-display text-[9px] font-bold uppercase tracking-[0.2em] text-black/30">
+          {displayModel}
+        </span>
+        <button
+          onClick={() => setSection('auditor')}
+          className="ml-2 font-hero-display text-sm font-black tracking-tighter uppercase text-black hover:text-black/50 transition-colors"
+        >
+          IOTA
         </button>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

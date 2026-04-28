@@ -34,13 +34,31 @@ export default function History() {
           if (riskGradient > 0.6 || data.bias_category === 'Overt') riskLevel = 'High';
           else if (riskGradient > 0.3 || data.bias_category === 'Structural') riskLevel = 'Medium';
           
+          const biasItems: string[] = data.bias_identified || [];
+          const biasVectors = data.bias_vectors || {};
+          
+          let vectors: { category: string, biasValue: number }[] = [];
+          if (Object.keys(biasVectors).length > 0) {
+            vectors = Object.entries(biasVectors).map(([cat, val]) => ({
+              category: cat,
+              biasValue: Number(val)
+            }));
+          } else {
+            vectors = biasItems.length > 0
+              ? biasItems.map((b: string, i: number) => ({
+                  category: b.length > 40 ? b.slice(0, 40) + '…' : b,
+                  biasValue: Math.min(1, Math.max(0, riskGradient + (i % 2 === 0 ? 0.05 : -0.05) * (i + 1) * 0.1))
+                }))
+              : [{ category: 'No bias detected', biasValue: 0 }];
+          }
+
           return {
             id: d.id,
             score: data.score || 0,
             riskLevel,
             explanation: data.reasoning || "No reasoning provided.",
             interventions: data.fairness_alternative ? [data.fairness_alternative] : [],
-            vectors: (data.bias_identified || []).map((b: string) => ({ category: b, biasValue: riskGradient })),
+            vectors,
             timestamp: data.timestamp?.toDate ? data.timestamp.toDate().toISOString() : new Date().toISOString(),
             originalText: data.original_text || data.prompt || "No text available."
           } as SavedAudit;
@@ -166,9 +184,6 @@ export default function History() {
                   </div>
                 </div>
 
-                <button className="flex items-center justify-center gap-3 bg-black text-white px-8 py-4 font-hero-display font-bold uppercase tracking-widest text-xs hover:bg-indigo-600 transition-all">
-                  <FileText size={16} /> Export Full Report (.PDF)
-                </button>
               </motion.div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-20 text-black/5 border border-black/5">

@@ -1,200 +1,220 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { auditTextBias, BiasAuditResult, saveAuditToHistory } from '../services/geminiService';
-import { 
-  ShieldCheck, AlertTriangle, Info, Send, Loader2, 
-  BarChart2, RefreshCw, MessageSquare, Flag, Zap 
-} from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Send, Loader2, Terminal } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
 
-function ActionIcon({ name }: { name: string }) {
-  switch (name) {
-    case 'BarChart2': return <BarChart2 size={12} />;
-    case 'RefreshCw': return <RefreshCw size={12} />;
-    case 'MessageSquare': return <MessageSquare size={12} />;
-    case 'Flag': return <Flag size={12} />;
-    case 'Zap': return <Zap size={12} />;
-    default: return null;
-  }
-}
+const RISK_COLOR = {
+  High:   'text-red-600   bg-red-50   border-red-200',
+  Medium: 'text-amber-600 bg-amber-50 border-amber-200',
+  Low:    'text-emerald-600 bg-emerald-50 border-emerald-200',
+};
 
 export default function AuditPlatform() {
-  const [input, setInput] = useState('');
+  const { setModelName } = useApp();
+  const [input, setInput]   = useState('');
   const [result, setResult] = useState<BiasAuditResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError]   = useState<string | null>(null);
 
   const handleAudit = async () => {
     if (!input.trim()) return;
     setLoading(true);
+    setError(null);
     try {
-      const res = await auditTextBias(input);
+      const res = await auditTextBias(input, 'Independent Auditor');
       setResult(res);
+      if (res.modelUsed) setModelName(res.modelUsed);
       saveAuditToHistory(input, res);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(msg);
+      setResult(null);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAudit();
+  };
+
   return (
-    <div className="flex flex-col gap-12 pt-12 items-center">
-      <header className="max-w-4xl text-center flex flex-col items-center">
-        <div className="w-24 h-24 mb-6 border-4 border-black rotate-45 flex items-center justify-center overflow-hidden">
-          <div className="rotate-[-45deg] font-hero-display font-black text-4xl">Ai</div>
-        </div>
-        <h1 className="font-hero-display text-7xl font-black mb-6 tracking-tighter uppercase">Independent Auditor</h1>
-        <p className="font-body-lg text-lg text-on-surface-variant max-w-2xl">
-          Model C Deployment: Standalone platform for deep-tissue inspection of AI-generated content. Externalize your fairness verification protocols instantly.
+    <div className="flex flex-col gap-10 pt-10 max-w-5xl mx-auto w-full">
+      {/* Header */}
+      <header>
+        <p className="stat-label mb-3">Independent Auditor</p>
+        <h1 className="font-hero-display text-6xl font-black tracking-tighter uppercase mb-4">
+          Bias Audit
+        </h1>
+        <p className="font-body-lg text-base text-on-surface-variant max-w-xl">
+          Paste any AI-generated text. IOTA detects bias, assigns a risk level, and suggests a fairer alternative.
         </p>
       </header>
 
-      <section className="w-full max-w-5xl flex flex-col gap-12">
-        {/* Wide Search Bar Style Input */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col gap-4"
-        >
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-8 flex items-center pointer-events-none">
-              <ShieldCheck className="text-black/20 group-focus-within:text-black transition-colors" size={24} />
-            </div>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Paste AI response here to begin auditing..."
-              className="w-full min-h-[120px] max-h-[400px] pl-20 pr-8 py-10 glass-card border-[0.5px] border-black/10 focus:border-black outline-none transition-all font-body-lg text-xl tracking-tight leading-relaxed shadow-[0_40px_100px_rgba(0,0,0,0.04)]"
-            />
-            <div className="absolute right-8 bottom-8 flex items-center gap-4">
-               {loading ? (
-                 <Loader2 className="animate-spin text-black" size={24} />
-               ) : (
-                 <button
-                    onClick={handleAudit}
-                    disabled={!input.trim()}
-                    className="bg-black text-white px-8 py-3 font-hero-display font-bold uppercase tracking-widest text-[10px] hover:bg-indigo-600 disabled:opacity-30 disabled:bg-gray-400 transition-all flex items-center gap-3"
-                  >
-                    Run Audit <Send size={14} />
-                  </button>
-               )}
-            </div>
+      {/* Input */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col gap-3"
+      >
+        <div className="relative group">
+          <div className="absolute top-5 left-5 text-black/20 group-focus-within:text-black/60 transition-colors pointer-events-none">
+            <ShieldCheck size={20} strokeWidth={1.5} />
           </div>
-
-          {/* Platform Functions (New Buttons) */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-4 mt-2"
-          >
-            {[
-              { icon: 'BarChart2', label: 'Rate Fairness' },
-              { icon: 'RefreshCw', label: 'Regenerate' },
-              { icon: 'MessageSquare', label: 'Reprompt' },
-              { icon: 'Flag', label: 'Flag Concern' },
-              { icon: 'Zap', label: 'Highlight Bias' },
-            ].map((action) => (
-              <button
-                key={action.label}
-                disabled={!result && !loading}
-                className="flex items-center gap-3 px-6 py-3 border-[0.5px] border-black/5 hover:border-black/20 hover:bg-black/5 transition-all font-hero-display text-[9px] font-black uppercase tracking-[0.2em] text-black/40 hover:text-black disabled:opacity-20 disabled:cursor-not-allowed"
-              >
-                {/* Dynamically rendering Lucide icons via string isn't stable in React without a lookup, so I'll use a functional map instead */}
-                <ActionIcon name={action.icon} />
-                {action.label}
-              </button>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        {/* Results Area */}
-        <div className="w-full">
-          <AnimatePresence mode="wait">
-            {result ? (
-              <motion.div
-                key="result"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-12"
-              >
-                <div className="lg:col-span-8 flex flex-col gap-8">
-                  <div className="p-12 glass-card border-[0.5px] border-black/5 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-12">
-                      {result.riskLevel === 'High' ? <AlertTriangle className="text-red-500" size={48} /> : <ShieldCheck className="text-green-500" size={48} />}
-                    </div>
-                    
-                    <div className="font-hero-display text-xs text-black/40 uppercase tracking-widest font-black mb-12">Intercept Detailed Report</div>
-                    <div className="flex flex-col gap-6">
-                      <h3 className="font-hero-display text-3xl font-black uppercase tracking-tighter">Analysis Findings</h3>
-                      <p className="font-body-md text-lg text-black/70 leading-relaxed max-w-xl">
-                        {result.explanation}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-12 mt-12 pt-12 border-t border-black/5">
-                      {result.vectors.slice(0, 2).map((vec, i) => (
-                        <div key={i}>
-                          <div className="text-[10px] uppercase font-black text-black/30 font-hero-display mb-2">{vec.category} INDEX</div>
-                          <div className="text-3xl font-black font-hero-display">{(vec.biasValue * 100).toFixed(1)}%</div>
-                          <div className="w-full h-1 bg-black/5 mt-3">
-                             <div className="h-full bg-black transition-all duration-1000" style={{ width: `${vec.biasValue * 100}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-4">
-                    <div className="font-hero-display text-xs text-black/40 uppercase tracking-widest font-bold">Standard Mitigation Actions</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {result.interventions.map((step, i) => (
-                        <div key={i} className="p-6 bg-white border border-black/5 hover:border-black/20 transition-all">
-                           <div className="font-hero-display text-[9px] font-black text-black/30 mb-2 uppercase">Step {i+1}</div>
-                           <div className="text-xs font-bold leading-relaxed">{step}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="lg:col-span-4 flex flex-col gap-8">
-                  <div className="p-10 bg-black text-white flex flex-col justify-between aspect-square">
-                    <div>
-                      <div className="font-hero-display text-[10px] uppercase tracking-[0.3em] font-black opacity-40 mb-12">Global Score</div>
-                      <div className="text-8xl font-black font-hero-display tracking-tighter">{result.score}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <div className={`w-3 h-3 rounded-full animate-pulse ${result.score > 80 ? 'bg-green-400' : 'bg-red-400'}`} />
-                       <span className="text-[10px] uppercase font-black tracking-widest opacity-60">Verified {result.score > 80 ? 'PARITY' : 'SKEW'}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-10 glass-card border border-black/5">
-                     <div className="font-hero-display text-[10px] uppercase tracking-widest font-black text-black/30 mb-8">Risk classification</div>
-                     <div className="text-2xl font-black font-hero-display uppercase tracking-widest mb-2">{result.riskLevel}</div>
-                     <p className="text-[10px] text-black/40 uppercase font-bold">Priority Level {result.riskLevel === 'High' ? '01' : '02'}</p>
-                  </div>
-                </div>
-              </motion.div>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Paste AI-generated text here…"
+            rows={5}
+            className="w-full pl-14 pr-5 py-5 card rounded-xl outline-none resize-none font-body-lg text-base leading-relaxed focus:ring-2 focus:ring-black/10 transition-all"
+          />
+          <div className="absolute right-4 bottom-4 flex items-center gap-3">
+            <span className="text-[9px] font-mono text-black/20">⌘↵ to run</span>
+            {loading ? (
+              <div className="flex items-center gap-2 bg-black/5 px-4 py-2 rounded-lg">
+                <Loader2 className="animate-spin text-black/50" size={14} />
+                <span className="text-[10px] font-black uppercase tracking-widest text-black/40 font-hero-display">Analyzing…</span>
+              </div>
             ) : (
-              <motion.div
-                key="placeholder"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="h-64 flex flex-col items-center justify-center text-center p-12 text-black/10 border-2 border-dashed border-black/5"
+              <button
+                onClick={handleAudit}
+                disabled={!input.trim()}
+                className="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-lg font-hero-display font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 disabled:opacity-30 transition-all"
               >
-                {!loading && (
-                  <div className="flex flex-col items-center gap-4">
-                    <ShieldCheck size={32} />
-                    <p className="font-hero-display text-xs uppercase tracking-widest font-black">Awaiting Data Ingestion</p>
+                Run Audit <Send size={12} />
+              </button>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Results */}
+      <AnimatePresence mode="wait">
+        {error && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="p-6 bg-red-50 border border-red-200 rounded-xl flex gap-4 items-start"
+          >
+            <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={18} />
+            <div>
+              <p className="font-hero-display font-black text-red-800 uppercase text-xs mb-1">Backend Error</p>
+              <p className="text-red-700 text-sm leading-relaxed">{error}</p>
+              <p className="text-red-500 text-xs mt-2">
+                Make sure the backend is running: <code className="bg-red-100 px-1.5 py-0.5 rounded font-mono">python backend/main.py</code>
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {!error && result && (
+          <motion.div
+            key="result"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+          >
+            {/* Score card */}
+            <div className="lg:col-span-3 flex flex-col gap-4">
+              <div className="card rounded-xl p-6 flex flex-col gap-4">
+                <p className="stat-label">Fairness Score</p>
+                <div className="flex items-end gap-2">
+                  <span className="font-hero-display text-6xl font-black tracking-tighter leading-none">{result.score}</span>
+                  <span className="text-black/30 font-hero-display text-lg font-black mb-1">/100</span>
+                </div>
+                {/* Score bar */}
+                <div className="score-bar">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${result.score}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className={`h-full rounded-full ${result.score > 70 ? 'bg-emerald-400' : result.score > 40 ? 'bg-amber-400' : 'bg-red-400'}`}
+                  />
+                </div>
+              </div>
+
+              <div className="card rounded-xl p-6 flex flex-col gap-3">
+                <p className="stat-label">Risk Level</p>
+                <span className={`tag ${result.riskLevel === 'High' ? 'tag-high' : result.riskLevel === 'Medium' ? 'tag-medium' : 'tag-low'}`}>
+                  {result.riskLevel} Risk
+                </span>
+                {result.vectors.length > 0 && (
+                  <div className="mt-2 flex flex-col gap-2.5">
+                    <p className="stat-label">Bias Signals</p>
+                    {result.vectors.slice(0, 3).map((vec, i) => (
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-bold text-black/40 uppercase tracking-wide font-hero-display truncate max-w-[120px]">{vec.category}</span>
+                          <span className="text-[9px] font-black text-black/30 font-mono">{(vec.biasValue * 100).toFixed(0)}%</span>
+                        </div>
+                        <div className="score-bar">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${vec.biasValue * 100}%` }}
+                            transition={{ duration: 0.6, delay: i * 0.1 }}
+                            className={`h-full rounded-full ${vec.biasValue > 0.6 ? 'bg-red-400' : vec.biasValue > 0.3 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </section>
+              </div>
+            </div>
+
+            {/* Main analysis */}
+            <div className="lg:col-span-9 flex flex-col gap-4">
+              {/* Reasoning */}
+              <div className="card rounded-xl p-8 flex flex-col gap-5 relative overflow-hidden">
+                <div className="absolute top-6 right-6">
+                  {result.riskLevel === 'High'
+                    ? <AlertTriangle className="text-red-400" size={22} />
+                    : <ShieldCheck className="text-emerald-400" size={22} />}
+                </div>
+                <div>
+                  <p className="stat-label mb-2">Analysis</p>
+                  <h3 className="font-hero-display text-2xl font-black tracking-tighter uppercase mb-4">Audit Findings</h3>
+                  <p className="font-body-md text-base text-on-surface-variant leading-relaxed max-w-2xl">
+                    {result.explanation}
+                  </p>
+                </div>
+              </div>
+
+              {/* Interventions */}
+              {result.interventions.length > 0 && (
+                <div className="card rounded-xl p-6 flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <Terminal size={14} className="text-black/30" />
+                    <p className="stat-label">Suggested Alternative</p>
+                  </div>
+                  {result.interventions.map((step, i) => (
+                    <div key={i} className="bg-black/[0.03] rounded-lg p-5 border border-black/5">
+                      <p className="font-body-md text-sm leading-relaxed text-black/70">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {!error && !result && !loading && (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="h-48 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-black/5 rounded-xl text-black/15"
+          >
+            <ShieldCheck size={28} strokeWidth={1} />
+            <p className="font-hero-display text-[10px] uppercase tracking-[0.2em] font-black">Paste text above to begin</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

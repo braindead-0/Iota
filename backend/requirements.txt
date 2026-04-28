@@ -1,5 +1,6 @@
 fastapi
 pydantic
 uvicorn
-google-cloud-aiplatform
+google-genai
 firebase-admin
+python-dotenv

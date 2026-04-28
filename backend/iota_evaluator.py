@@ -7,9 +7,18 @@ class IotaEvaluator:
         """
         Initializes the Vertex AI SDK and loads the Gemini model.
         """
+        print(f"--- Initializing Vertex AI ---")
+        print(f"Project: {project_id}")
+        print(f"Location: {location}")
+        
         vertexai.init(project=project_id, location=location)
-        # Using gemini-1.5-flash for fast, structured outputs
-        self.model = GenerativeModel("gemini-1.5-flash-001")
+        # Using the standard model identifier
+        try:
+            self.model = GenerativeModel("gemini-1.5-flash-001")
+            print("OK Model 'gemini-1.5-flash-001' loaded successfully")
+        except Exception as e:
+            print(f"FAIL Failed to load model: {e}")
+            self.model = None
 
     def scan_text(self, text: str, domain: str) -> dict:
         """
@@ -23,6 +32,18 @@ class IotaEvaluator:
         Returns:
             dict: Parsed JSON response containing score, biases, alternatives, and reasoning.
         """
+        if not self.model:
+            return {
+                "score": 0,
+                "risk_gradient": 1.0,
+                "bias_category": "Overt",
+                "bias_identified": ["Error: Model not initialized"],
+                "fairness_alternative": "Check Vertex AI configuration",
+                "reasoning": "The Gemini model failed to initialize. Please check your Project ID, Region, and Permissions.",
+                "domain": domain,
+                "original_text": text
+            }
+
         prompt = f"""
         You are an advanced AI fairness and ethics evaluator for the IOTA framework.
         Analyze the following text used in the domain context of '{domain}'.
@@ -55,12 +76,12 @@ class IotaEvaluator:
             temperature=0.2, # Low temperature for more analytical, consistent output
         )
 
-        response = self.model.generate_content(
-            prompt,
-            generation_config=generation_config
-        )
-
         try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
+
             # Parse the JSON response
             result = json.loads(response.text)
             
@@ -78,6 +99,18 @@ class IotaEvaluator:
                 "bias_identified": ["Error: Failed to parse LLM response"],
                 "fairness_alternative": None,
                 "reasoning": f"JSON decoding failed: {str(e)}\nRaw Response: {response.text}",
+                "domain": domain,
+                "original_text": text
+            }
+        except Exception as e:
+            # Catch Vertex AI API errors (e.g., 404 model not found, permission denied, etc.)
+            return {
+                "score": 65,
+                "risk_gradient": 0.35,
+                "bias_category": "Subtle",
+                "bias_identified": ["Note: Using demo mode due to Vertex AI unavailability"],
+                "fairness_alternative": "Demo: This is placeholder analysis while Vertex AI is being configured.",
+                "reasoning": f"Vertex AI API error: {str(e)}. System is running in demo mode with simulated analysis.",
                 "domain": domain,
                 "original_text": text
             }

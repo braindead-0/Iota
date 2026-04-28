@@ -1,68 +1,133 @@
-import { motion } from 'motion/react';
+"use client";
+import { motion, AnimatePresence } from 'motion/react';
 import { 
-  LayoutDashboard, Scale, EyeOff, Gavel, Cpu, Settings, HelpCircle, 
-  Monitor, Terminal as TerminalIcon 
+  LayoutDashboard, Scale, Clock, Monitor, Search,
+  ChevronLeft, ChevronRight, PanelLeftClose
 } from 'lucide-react';
+import { useApp, Section } from '@/context/AppContext';
 
 export default function Sidebar() {
-  const menuItems = [
-    { id: 'auditor', icon: Scale, label: 'Independent Auditor' },
-    { id: 'history', icon: LayoutDashboard, label: 'History & Reports' },
-    { id: 'extension', icon: Monitor, label: 'Model A: Extension' },
-    { id: 'search', icon: EyeOff, label: 'Search Telemetry' },
-    { id: 'terminal', icon: TerminalIcon, label: 'System Terminal' },
-    { id: 'resources', icon: HelpCircle, label: 'Resources' },
-  ];
+  const { section, setSection, sidebarOpen, toggleSidebar } = useApp();
 
-  const secondaryItems = [
-    { icon: Settings, label: 'Settings' },
-    { icon: HelpCircle, label: 'Support' },
+  const menuItems: { id: Section; icon: React.ElementType; label: string }[] = [
+    { id: 'auditor',   icon: Scale,           label: 'Independent Auditor' },
+    { id: 'history',   icon: Clock,           label: 'Audit History'       },
+    { id: 'search',    icon: Search,          label: 'Search Telemetry'    },
+    { id: 'extension', icon: Monitor,         label: 'Browser Extension'   },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Live Dashboard'      },
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-80 hidden xl:flex flex-col p-8 gap-12 border-r-[0.5px] border-black/5 z-40 bg-surface">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <img 
-            src="https://lh3.googleusercontent.com/aida/ADBb0uh9sjRo6y2b30rQ4uW0Mtrx_tdhWh_y6XsfILnEjpLPAco0sRwjomT7-CqkSDOkxEwXiIpfgoHycXXBDfh1nMGAJj17YMuaokHirq-Zj4F33bWM3y4QvFSpnkuESKLeT26dbP_TcMIlhfX5Ny4r6yjsQL8rAuDuJM2wEzj7q697YA5Oo8P5V0WeuR2NK7mvB67Q8rXVIBzX2T9mpDInKd3asfUdOQz1Ah2d7WVqC7Fyn1eRtDqKQMAZk0E57WU3VavEUA6lhgzzTA" 
-            alt="IOTA Logo" 
-            className="h-10 w-10 grayscale object-contain"
-          />
-          <div className="flex flex-col">
-            <div className="text-lg font-black font-hero-display tracking-tight uppercase">IOTA</div>
-            <div className="text-[10px] text-black/40 uppercase tracking-widest font-semibold">Status: Auditing</div>
+    <>
+      {/* Sidebar panel */}
+      <motion.aside
+        initial={false}
+        animate={{ width: sidebarOpen ? 288 : 64 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+        className="fixed left-0 top-0 h-screen hidden xl:flex flex-col border-r-[0.5px] border-black/8 z-40 bg-white overflow-hidden"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-6 border-b border-black/5 shrink-0">
+          <AnimatePresence mode="wait">
+            {sidebarOpen && (
+              <motion.div
+                key="brand"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-2.5 pl-2"
+              >
+                <div className="flex flex-col">
+                  <span className="text-base font-black font-hero-display tracking-tight uppercase leading-none">IOTA</span>
+                  <span className="text-[9px] text-black/30 uppercase tracking-[0.2em] font-bold mt-0.5">Fairness Middleware</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <button
+            onClick={toggleSidebar}
+            className={`w-8 h-8 rounded-md flex items-center justify-center text-black/40 hover:text-black hover:bg-black/5 transition-all shrink-0 ${!sidebarOpen ? 'mx-auto' : ''}`}
+          >
+            {sidebarOpen ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
+        </div>
+
+        {/* Nav items */}
+        <nav className="flex flex-col gap-1 flex-1 p-3 overflow-hidden">
+          {menuItems.map((item) => {
+            const isActive = section === item.id;
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => setSection(item.id)}
+                whileHover={{ x: sidebarOpen ? 3 : 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                title={!sidebarOpen ? item.label : undefined}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-left group relative ${
+                  isActive
+                    ? 'bg-black text-white'
+                    : 'text-black/50 hover:bg-black/5 hover:text-black'
+                }`}
+              >
+                <item.icon
+                  size={18}
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                  className="shrink-0"
+                />
+                <AnimatePresence mode="wait">
+                  {sidebarOpen && (
+                    <motion.span
+                      key="label"
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="font-hero-display text-xs font-semibold uppercase tracking-widest whitespace-nowrap overflow-hidden"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          })}
+        </nav>
+
+        {/* Footer status */}
+        <div className="shrink-0 p-3 border-t border-black/5">
+          <div className={`flex items-center gap-2.5 px-3 py-2 ${!sidebarOpen ? 'justify-center' : ''}`}>
+            <motion.div
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ repeat: Infinity, duration: 2.5 }}
+              className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"
+            />
+            <AnimatePresence mode="wait">
+              {sidebarOpen && (
+                <motion.span
+                  key="status"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="text-[9px] uppercase font-bold tracking-widest text-black/30 font-hero-display whitespace-nowrap"
+                >
+                  Backend · Active
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.aside>
 
-      <nav className="flex flex-col gap-2 flex-1">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => (window as any).setAppSection?.(item.id)}
-            className={`flex items-center gap-4 px-4 py-3 rounded-sm transition-all font-hero-display text-sm ${
-              (window as any).appSection === item.id 
-                ? 'bg-black/5 text-black font-semibold' 
-                : 'text-black/50 hover:bg-black/5'
-            }`}
-          >
-            <item.icon size={20} strokeWidth={(window as any).appSection === item.id ? 2.5 : 2} />
-            {item.label}
-          </button>
-        ))}
-      </nav>
-
-      <div className="flex flex-col gap-2 border-t border-black/5 pt-8">
-        {secondaryItems.map((item) => (
-          <button
-            key={item.label}
-            className="flex items-center gap-4 px-4 py-2 text-black/50 hover:bg-black/5 rounded-sm transition-all font-hero-display text-sm"
-          >
-            <item.icon size={18} />
-            {item.label}
-          </button>
-        ))}
-      </div>
-    </aside>
+      {/* Mobile overlay toggle (below xl) */}
+      <button
+        onClick={toggleSidebar}
+        className="xl:hidden fixed bottom-6 right-6 z-50 w-12 h-12 bg-black text-white rounded-full flex items-center justify-center shadow-xl"
+      >
+        <PanelLeftClose size={20} />
+      </button>
+    </>
   );
 }

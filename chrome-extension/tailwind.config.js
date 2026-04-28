@@ -5,26 +5,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: '#FFFFFF', // Monochrome white
-        subtle: '#666666',
-        black: '#000000',
-        white: '#ffffff',
+        brand: '#5e5e5e', // Surface tint from web-app
+        surface: '#f9f9f9',
+        'on-surface': '#1a1c1c',
+        'on-surface-variant': '#4c4546',
+        outline: '#7e7576',
       },
       borderWidth: {
-        DEFAULT: '2px',
+        DEFAULT: '0.5px',
       },
       borderRadius: {
         'none': '0px',
-        'sm': '0px',
-        DEFAULT: '0px',
-        'md': '0px',
-        'lg': '0px',
-        'xl': '0px',
-        '2xl': '0px',
-        '3xl': '0px',
-        'full': '0px',
+        'sm': '2px',
+        DEFAULT: '2px',
+        'md': '4px',
+        'lg': '8px',
+        'xl': '12px',
+        '2xl': '16px',
+        '3xl': '20px',
+        'full': '9999px',
       }
     },
   },
   plugins: [],
 }
+

@@ -3,12 +3,38 @@
   "name": "IOTA Web App Extension",
   "version": "1.0",
   "description": "Chrome Extension boilerplate for IOTA Web App",
+  "icons": {
+    "16": "public/icon16.png",
+    "32": "public/icon32.png",
+    "48": "public/icon48.png",
+    "128": "public/icon128.png"
+  },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "public/icon16.png",
+      "32": "public/icon32.png",
+      "48": "public/icon48.png",
+      "128": "public/icon128.png"
+    }
   },
   "permissions": [
     "storage",
     "activeTab"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "public/iota-logo.svg",
+        "public/icon16.png",
+        "public/icon32.png",
+        "public/icon48.png",
+        "public/icon128.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
   ],
   "content_scripts": [
     {

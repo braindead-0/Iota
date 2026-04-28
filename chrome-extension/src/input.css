@@ -4,11 +4,6 @@
 
 @layer base {
   body {
-    @apply bg-black text-white antialiased font-sans border-0;
-  }
-  
-  /* Brutalist defaults */
-  * {
-    @apply border-white;
+    @apply bg-surface text-on-surface antialiased;
   }
 }

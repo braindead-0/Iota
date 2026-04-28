@@ -1,26 +1,29 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IOTA Extension</title>
   <link href="./dist/output.css" rel="stylesheet">
 </head>
-<body class="w-80 h-96 p-4 border-2 border-white bg-black flex flex-col gap-4 m-0 overflow-hidden text-white font-mono">
-  <header class="border-b-2 border-brand pb-3 flex justify-between items-center">
-    <h1 class="text-2xl font-black uppercase tracking-widest text-brand m-0 leading-none">IOTA</h1>
-    <div class="w-4 h-4 bg-brand border-2 border-white animate-pulse"></div>
+<body class="w-96 h-96 p-6 bg-surface flex flex-col gap-6 m-0 overflow-hidden text-on-surface font-sans">
+  <header class="border-b border-outline/30 pb-4 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <img src="./public/iota-logo.svg" alt="IOTA Logo" class="h-6 w-6" />
+      <h1 class="text-lg font-bold uppercase tracking-tight text-on-surface m-0 leading-none">IOTA</h1>
+    </div>
+    <div class="w-2 h-2 bg-brand rounded-full animate-pulse"></div>
   </header>
   <main class="flex flex-col gap-4 flex-1 justify-center">
-    <div class="p-4 border-2 border-white bg-black group hover:bg-brand hover:border-brand transition-colors duration-200">
-      <h2 class="text-lg font-bold uppercase mb-1 group-hover:text-black">Status</h2>
-      <p id="status-text" class="text-sm opacity-80 group-hover:text-black font-bold">Disconnected</p>
+    <div class="p-4 border border-outline/20 bg-white rounded-md group hover:bg-on-surface hover:text-white transition-colors duration-200">
+      <h2 class="text-sm font-semibold uppercase mb-1 group-hover:text-white">Status</h2>
+      <p id="status-text" class="text-xs opacity-70 group-hover:text-white/80 font-medium">Disconnected</p>
     </div>
-    <button id="connect-btn" class="border-2 border-white bg-black hover:bg-white hover:text-black text-white px-4 py-3 font-bold uppercase tracking-wider transition-colors active:translate-y-1">
+    <button id="connect-btn" class="border border-outline/30 bg-on-surface hover:bg-on-surface/90 text-white px-4 py-3 font-semibold uppercase tracking-wide text-sm rounded-md transition-colors active:translate-y-0.5">
       Connect Wallet
     </button>
   </main>
-  <footer class="border-t-2 border-white pt-2 text-xs uppercase text-center opacity-70">
+  <footer class="border-t border-outline/20 pt-3 text-xs uppercase text-on-surface/50 text-center">
     <span id="uid-text">Manifest V3 Extension</span>
   </footer>
   <script src="./src/popup.js"></script>

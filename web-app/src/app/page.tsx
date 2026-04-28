@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useApp } from '@/context/AppContext';
 import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
 import BiasVectorGrid from '../components/BiasVectorGrid';
@@ -11,23 +12,19 @@ import AuditPlatform from '../components/AuditPlatform';
 import SearchTelemetry from '../components/SearchTelemetry';
 import History from '../components/History';
 import Extension from '../components/Extension';
-import Resources from '../components/Resources';
-import { Brain, Scale, ChevronDown } from 'lucide-react';
+import { Brain, Scale } from 'lucide-react';
 
 export default function App() {
-  const [section, setSection] = useState('auditor');
+  const { section, sidebarOpen } = useApp();
   const [liveAudits, setLiveAudits] = useState<any[]>([]);
 
   useEffect(() => {
-    (window as any).appSection = section;
-    (window as any).setAppSection = setSection;
-  }, [section]);
-
-  useEffect(() => {
-    // Only listen when on the terminal tab to save reads, but we can do it globally too
+    // Real-time listener on Firestore 'reports' collection
     const q = query(collection(db, "reports"), orderBy("timestamp", "desc"), limit(10));
     const unsub = onSnapshot(q, (snap) => {
       setLiveAudits(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.error("Firestore listener error:", err);
     });
     return () => unsub();
   }, []);
@@ -43,12 +40,17 @@ export default function App() {
       <Sidebar />
       <TopNav />
 
-      <main className="relative pb-64 xl:pl-80">
+      <motion.main
+        animate={{ paddingLeft: sidebarOpen ? 288 : 64 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+        className="relative pb-64 pt-16">
         <div className="max-w-[1440px] mx-auto px-12 relative z-10 w-full">
           <AnimatePresence mode="wait">
-            {section === 'terminal' && (
+
+            {/* ── LIVE DASHBOARD ── */}
+            {section === 'dashboard' && (
               <motion.div
-                key="terminal"
+                key="dashboard"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -61,7 +63,7 @@ export default function App() {
                   >
                     <span className="h-[1px] w-12 bg-black"></span>
                     <span className="font-hero-display text-xs uppercase text-black/40 tracking-widest font-bold">
-                      Audit Status: Scanning for Bias
+                      Live · Firestore-backed
                     </span>
                   </motion.div>
                   <motion.h1 
@@ -70,7 +72,7 @@ export default function App() {
                     transition={{ delay: 0.1 }}
                     className="font-hero-display text-8xl font-black mb-8 tracking-tighter"
                   >
-                    Terminal: IOTA
+                    Live Dashboard
                   </motion.h1>
                   <motion.p 
                     initial={{ opacity: 0, y: 20 }}
@@ -78,7 +80,7 @@ export default function App() {
                     transition={{ delay: 0.2 }}
                     className="font-body-lg text-lg text-on-surface-variant max-w-2xl"
                   >
-                    Autonomous fairness auditing and real-time intercept telemetry. Monitor representation matrices, model drift, and counterfactual analysis from a unified AI middleware control center.
+                    Real-time view of all bias audits processed through IOTA. Data is pulled live from Firestore as new audits are submitted.
                   </motion.p>
                 </header>
 
@@ -91,48 +93,50 @@ export default function App() {
                           whileHover={{ scale: 1.02 }}
                           className="p-12 glass-card border-[0.5px] border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.02)]"
                         >
-                          <div className="font-hero-display text-[10px] text-black/40 mb-2 uppercase tracking-widest font-bold">Bias Triggers (Recent)</div>
+                          <div className="font-hero-display text-[10px] text-black/40 mb-2 uppercase tracking-widest font-bold">High-Risk Audits</div>
                           <div className="font-hero-display text-4xl font-bold mb-4">{biasTriggers < 10 ? `0${biasTriggers}` : biasTriggers}</div>
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-cyan-400"></div>
-                            <span className="text-[10px] uppercase font-bold text-black/40 tracking-wider">Real-time Mitigation Active</span>
+                            <span className="text-[10px] uppercase font-bold text-black/40 tracking-wider">Of last {liveAudits.length} audits</span>
                           </div>
                         </motion.div>
                         <motion.div 
                           whileHover={{ scale: 1.02 }}
                           className="p-12 glass-card border-[0.5px] border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.02)]"
                         >
-                          <div className="font-hero-display text-[10px] text-black/40 mb-2 uppercase tracking-widest font-bold">Avg. Confidence Score</div>
+                          <div className="font-hero-display text-[10px] text-black/40 mb-2 uppercase tracking-widest font-bold">Avg. Fairness Score</div>
                           <div className="font-hero-display text-4xl font-bold mb-4">{avgScore.toFixed(1)}</div>
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${parseFloat(lastPromptDiff) >= 0 ? 'bg-indigo-500' : 'bg-red-500'}`}></div>
-                            <span className="text-[10px] uppercase font-bold text-black/40 tracking-wider">{parseFloat(lastPromptDiff) >= 0 ? '+' : ''}{lastPromptDiff} vs Last Prompt</span>
+                            <span className="text-[10px] uppercase font-bold text-black/40 tracking-wider">{parseFloat(lastPromptDiff) >= 0 ? '+' : ''}{lastPromptDiff} vs last audit</span>
                           </div>
                         </motion.div>
                       </div>
                     </section>
                     <BiasVectorGrid audits={liveAudits} />
                   </div>
+
                   <div className="col-span-12 lg:col-span-5">
                     <div className="sticky top-40">
                       <div className="flex justify-between items-end mb-12">
-                         <h2 className="font-headline-lg text-4xl font-bold leading-tight">Real-time Bias Interception</h2>
-                         <div className="font-hero-display text-xs text-black/40 pb-2 uppercase tracking-widest font-bold">Live Stream</div>
+                         <h2 className="font-headline-lg text-4xl font-bold leading-tight">Recent Intercepts</h2>
+                         <div className="font-hero-display text-xs text-black/40 pb-2 uppercase tracking-widest font-bold">Live</div>
                       </div>
                       <div className="flex flex-col gap-6">
-                        {liveAudits.length > 0 ? liveAudits.slice(0, 3).map(audit => (
+                        {liveAudits.length > 0 ? liveAudits.slice(0, 5).map(audit => (
                           <InterceptCard 
                             key={audit.id}
                             id={audit.id}
-                            title={audit.bias_category === "None" ? "Parity Validation" : `${audit.bias_category} Variance`}
-                            description={audit.reasoning || "Analyzing inference..."}
-                            tags={[audit.domain || 'Live Stream', audit.bias_category === 'None' ? 'Verified' : 'Flagged']}
+                            title={audit.bias_category === "None" ? "Parity Validated" : `${audit.bias_category} Bias`}
+                            description={audit.reasoning ? audit.reasoning.slice(0, 120) + '…' : "Analyzing…"}
+                            score={audit.score}
+                            riskCategory={audit.bias_category}
                             icon={audit.bias_category === 'None' ? Scale : Brain}
                             iconColor={audit.bias_category === 'None' ? "text-cyan-400" : "text-indigo-500"}
                           />
                         )) : (
                           <div className="p-12 text-center border-2 border-dashed border-black/5 text-black/30 font-hero-display text-xs uppercase tracking-widest font-bold">
-                            Waiting for active inference stream...
+                            No audits yet — submit text in the Auditor tab
                           </div>
                         )}
                       </div>
@@ -140,23 +144,11 @@ export default function App() {
                   </div>
                 </div>
 
-                <section className="mt-section-gap">
-                  <div className="relative h-[600px] w-full overflow-hidden border-[0.5px] border-black/5 neural-mesh flex items-center justify-center group">
-                    <div className="absolute inset-0 opacity-10 grayscale transition-transform duration-1000 group-hover:scale-110" style={{backgroundImage: "url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2000&auto=format&fit=crop')"}}></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-12 z-10">
-                      <span className="font-hero-display text-xs mb-4 text-black/40 uppercase tracking-widest font-bold">Statistical Visualization</span>
-                      <h2 className="font-hero-display text-6xl font-black mb-8 tracking-tighter">Bias Vector Analysis</h2>
-                      <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="w-16 h-16 border-[0.5px] border-black flex items-center justify-center rounded-full cursor-pointer hover:bg-black hover:text-white transition-all">
-                        <ChevronDown size={24} strokeWidth={1.5} />
-                      </motion.div>
-                    </div>
-                  </div>
-                </section>
                 <Terminal audits={liveAudits} />
               </motion.div>
             )}
 
+            {/* ── INDEPENDENT AUDITOR ── */}
             {section === 'auditor' && (
               <motion.div
                 key="auditor"
@@ -169,6 +161,7 @@ export default function App() {
               </motion.div>
             )}
 
+            {/* ── AUDIT HISTORY ── */}
             {section === 'history' && (
               <motion.div
                 key="history"
@@ -181,6 +174,7 @@ export default function App() {
               </motion.div>
             )}
 
+            {/* ── BROWSER EXTENSION ── */}
             {section === 'extension' && (
               <motion.div
                 key="extension"
@@ -193,6 +187,7 @@ export default function App() {
               </motion.div>
             )}
 
+            {/* ── SEARCH TELEMETRY ── */}
             {section === 'search' && (
               <motion.div
                 key="search"
@@ -205,98 +200,56 @@ export default function App() {
               </motion.div>
             )}
 
-            {section === 'resources' && (
-              <motion.div
-                key="resources"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="pt-24"
-              >
-                <Resources />
-              </motion.div>
-            )}
-            
-            {(section === 'compliance' || section === 'ethics') && (
-              <motion.div
-                key="placeholder"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="pt-48 flex flex-col items-center text-center text-black/20"
-              >
-                <div className="font-hero-display text-8xl font-black mb-4">ACCESS_CLOSED</div>
-                <p className="font-hero-display text-xs uppercase tracking-widest font-bold">Authentication level insufficient for {section.toUpperCase()} protocols.</p>
-              </motion.div>
-            )}
           </AnimatePresence>
         </div>
-      </main>
+      </motion.main>
 
       {/* Footer */}
-      <footer className="bg-white border-t-[0.5px] border-black/5 py-24 relative z-10 lg:pl-80">
-        <div className="max-w-[1440px] mx-auto px-12 grid grid-cols-1 md:grid-cols-4 gap-16">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 mb-8">
-              <img 
-                src="https://lh3.googleusercontent.com/aida/ADBb0uh9sjRo6y2b30rQ4uW0Mtrx_tdhWh_y6XsfILnEjpLPAco0sRwjomT7-CqkSDOkxEwXiIpfgoHycXXBDfh1nMGAJj17YMuaokHirq-Zj4F33bWM3y4QvFSpnkuESKLeT26dbP_TcMIlhfX5Ny4r6yjsQL8rAuDuJM2wEzj7q697YA5Oo8P5V0WeuR2NK7mvB67Q8rXVIBzX2T9mpDInKd3asfUdOQz1Ah2d7WVqC7Fyn1eRtDqKQMAZk0E57WU3VavEUA6lhgzzTA" 
-                alt="IOTA Logo" 
-                className="h-8 w-8 grayscale object-contain"
-              />
-              <div className="text-xl font-bold tracking-tighter text-black uppercase font-hero-display">IOTA</div>
-            </div>
-            <div className="text-lg font-bold text-black mb-4 uppercase tracking-tighter font-hero-display">
-              IOTA: Autonomous Fairness Middleware
-            </div>
-            <p className="text-black/40 max-w-sm font-body-md text-sm">
-              Precision-engineered auditing for the next generation of equitable AI. Ensuring representation and parity in autonomous decision-making systems.
-            </p>
+      <motion.footer
+        animate={{ paddingLeft: sidebarOpen ? 288 : 64 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+        className="bg-white border-t-[0.5px] border-black/5 py-16 relative z-10">
+        <div className="max-w-[1440px] mx-auto px-12 flex flex-col sm:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/iota-logo.svg" 
+              alt="IOTA Logo" 
+              className="h-7 w-7 grayscale object-contain"
+            />
+            <div className="text-base font-bold tracking-tighter text-black uppercase font-hero-display">IOTA</div>
+            <span className="text-black/20 mx-2">—</span>
+            <span className="text-sm text-black/40 font-body-md">AI Fairness Middleware · v1.0 Prototype</span>
           </div>
-          <div>
-            <h4 className="font-hero-display text-xs uppercase mb-8 tracking-widest font-bold text-black/80">Audits</h4>
-            <ul className="flex flex-col gap-4 text-sm text-black/60 font-medium">
-              <li><a className="hover:text-black transition-colors" href="#">Bias Logs</a></li>
-              <li><a className="hover:text-black transition-colors" href="#">Parity Console</a></li>
-              <li><a className="hover:text-black transition-colors" href="#">Fairness Reports</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-hero-display text-xs uppercase mb-8 tracking-widest font-bold text-black/80">System</h4>
-            <ul className="flex flex-col gap-4 text-sm text-black/60 font-medium">
-              <li><a className="hover:text-black transition-colors" href="#">Compliance Protocol</a></li>
-              <li><a className="hover:text-black transition-colors" href="#">Model Governance</a></li>
-              <li><a className="hover:text-black transition-colors" href="#">Terminal Access</a></li>
-            </ul>
-          </div>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-black/20 font-bold font-hero-display">
+            © 2025 IOTA · Powered by Gemini 1.5 Flash
+          </span>
         </div>
-        <div className="max-w-[1440px] mx-auto px-12 mt-24 pt-8 border-t border-black/5 flex flex-col sm:row justify-between items-center text-[10px] uppercase tracking-[0.2em] text-black/20 font-bold">
-          <span>© 2024 IOTA: AUTONOMOUS FAIRNESS MIDDLEWARE</span>
-          <span className="mt-4 sm:mt-0">Ethical Status: Synchronized</span>
-        </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 }
 
-function InterceptCard({ id, title, description, tags, icon: Icon, iconColor }: any) {
+function InterceptCard({ id, title, description, score, riskCategory, icon: Icon, iconColor }: any) {
   return (
     <motion.div 
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -3 }}
       className="group p-8 bg-white border-[0.5px] border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.04)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.08)] transition-all duration-500"
     >
-      <div className="flex justify-between mb-4">
-        <span className="font-mono text-[10px] text-black/40 font-bold">{id}</span>
-        <Icon size={18} className={iconColor} strokeWidth={1.5} />
+      <div className="flex justify-between mb-3">
+        <span className="font-mono text-[9px] text-black/30 font-bold">{id}</span>
+        <Icon size={16} className={iconColor} strokeWidth={1.5} />
       </div>
-      <h3 className="font-hero-display text-xl font-bold mb-2 tracking-tight">{title}</h3>
-      <p className="text-sm text-on-surface-variant mb-6 font-body-md leading-relaxed">{description}</p>
-      <div className="flex gap-4">
-        {tags.map((tag: string) => (
-          <div key={tag} className="px-3 py-1 bg-black/5 font-hero-display text-[10px] uppercase tracking-widest font-bold">
-            {tag}
-          </div>
-        ))}
+      <h3 className="font-hero-display text-base font-bold mb-2 tracking-tight">{title}</h3>
+      <p className="text-xs text-on-surface-variant mb-4 font-body-md leading-relaxed">{description}</p>
+      <div className="flex items-center gap-4">
+        <div className="flex-1 h-0.5 bg-black/5">
+          <div 
+            className={`h-full transition-all duration-700 ${score > 70 ? 'bg-green-400' : score > 40 ? 'bg-yellow-400' : 'bg-red-400'}`} 
+            style={{ width: `${score}%` }}
+          />
+        </div>
+        <span className="text-[9px] font-black font-hero-display text-black/30">{score}/100</span>
       </div>
     </motion.div>
   );
 }
-

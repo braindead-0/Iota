@@ -13,7 +13,7 @@ export default function SearchTelemetry() {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const res = await auditTextBias(query);
+      const res = await auditTextBias(query, 'Search Telemetry');
       setAuditResult(res);
       saveAuditToHistory(query, res);
     } catch (err) {
@@ -79,7 +79,7 @@ export default function SearchTelemetry() {
                     </div>
                     <div>
                       <div className="text-[10px] uppercase font-black text-black/30 font-hero-display mb-1">Skew Index</div>
-                      <div className="text-2xl font-black font-hero-display">{(auditResult.vectors[1]?.biasValue || 0).toFixed(2)}</div>
+                      <div className="text-2xl font-black font-hero-display">{((auditResult.vectors[1] ?? auditResult.vectors[0])?.biasValue || 0).toFixed(2)}</div>
                     </div>
                   </div>
                 </div>

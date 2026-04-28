@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 470">
+  <!--
+    IOTA Logo — v6 final
+    Original analysis:
+    - A has THICK legs (inner cutout is ~35% inset from outer)  
+    - A inner starts low (tip at ~y=80 not y=10)
+    - Wide solid crossbar
+    - Horseshoe: open at bottom ~35% of circumference
+    - Inside: tilde then i dot then short italic stem
+  -->
+
+  <!-- ═══ LETTER A (thick-stroked, open inside) ═══ -->
+  <!-- Outer solid A -->
+  <polygon points="200,8 388,248 12,248" fill="black"/>
+  <!-- Inner cutout: starts lower, much smaller → thick leg strokes -->
+  <!-- Leg thickness = (outer width - inner width)/2 at base ≈ 55px each side -->
+  <polygon points="200,80 300,228 100,228" fill="white"/>
+
+  <!-- ═══ CROSSBAR ═══ -->
+  <rect x="0" y="196" width="400" height="60" fill="black"/>
+
+  <!-- ═══ HORSESHOE ═══ -->
+  <!-- Outer circle fully filled -->
+  <circle cx="200" cy="332" r="126" fill="black"/>
+  <!-- Inner white ring -->
+  <circle cx="200" cy="332" r="86"  fill="white"/>
+  <!-- Open the bottom ~38%: mask from y=390 down -->
+  <rect x="72" y="393" width="256" height="80" fill="white"/>
+
+  <!-- ═══ TILDE ═══ -->
+  <!-- Positioned inside the white horseshoe area, above i dot -->
+  <path d="M 157,278 Q 171,260 186,273 Q 201,286 216,268 Q 231,250 246,263"
+        stroke="black" stroke-width="13" stroke-linecap="round" fill="none"/>
+
+  <!-- ═══ ITALIC i ═══ -->
+  <!-- Dot — centered in horseshoe -->
+  <circle cx="200" cy="308" r="13" fill="black"/>
+  <!-- Stem — slim, straight (italic look via slight slant path) -->
+  <path d="M 191,325 L 185,378 L 211,378 L 206,325 Z" fill="black"/>
+</svg>
