@@ -29,7 +29,7 @@ except Exception as e:
     print(f"Error loading .env: {e}")
 
 # Import our Gemini evaluator
-from gemini_evaluator import GeminiEvaluator
+from agent_brain import GeminiEvaluator
 
 app = FastAPI(title="IOTA Audit Engine", version="1.0.0")
 

@@ -8,7 +8,7 @@ import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
 import BiasVectorGrid from '../components/BiasVectorGrid';
 import Terminal from '../components/Terminal';
-import AuditPlatform from '../components/AuditPlatform';
+import IotaAgentUI from '../components/IotaAgentUI';
 import SearchTelemetry from '../components/SearchTelemetry';
 import History from '../components/History';
 import Extension from '../components/Extension';
@@ -157,7 +157,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 className="pt-24"
               >
-                <AuditPlatform />
+                <IotaAgentUI />
               </motion.div>
             )}
 

@@ -72,17 +72,17 @@ function injectIcon() {
     overflowY: 'auto',
     borderLeft: '1px solid rgba(255, 255, 255, 0.15)',
     paddingLeft: '16px',
-    lineHeight: '0.5px solid rgba(26, 28, 28, 0.1)',
-    paddingLeft: '16px',
     lineHeight: '1.6',
     color: 'rgba(26, 28, 28, 0.7)',
-    fontSize: '12px
+    fontSize: '12px'
+  });
   // Send to terminal button
   const terminalBtn = document.createElement('button');
   terminalBtn.innerText = 'SEND TO TERMINAL';
   Object.assign(terminalBtn.style, {
     width: '100%',
-    padding: '12px',1a1c1c',
+    padding: '12px',
+    backgroundColor: '#1a1c1c',
     color: '#ffffff',
     border: 'none',
     borderRadius: '4px',
@@ -98,8 +98,7 @@ function injectIcon() {
   });
 
   terminalBtn.addEventListener('mouseover', () => terminalBtn.style.backgroundColor = '#2a2c2c');
-  terminalBtn.addEventListener('mouseout', () => terminalBtn.style.backgroundColor = '#1a1c1cd');
-  terminalBtn.addEventListener('mouseout', () => terminalBtn.style.backgroundColor = '#ffffff');
+  terminalBtn.addEventListener('mouseout', () => terminalBtn.style.backgroundColor = '#1a1c1c');
 
   terminalBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -207,7 +206,7 @@ async function captureAndScanAIResponse() {
 
     const token = authData.firebaseAuthToken || "MOCK_DEVELOPMENT_TOKEN";
 
-    const response = await fetch('https://iota-audit-engine-api-925013735036.us-central1.run.app/scan', {
+    const response = await fetch('https://iota-backend-925013735036.us-central1.run.app/scan', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

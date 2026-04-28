@@ -21,9 +21,12 @@ class GeminiEvaluator:
         self.project_id = os.getenv("GCP_PROJECT_ID")
         self.location = os.getenv("GCP_LOCATION", "us-central1")
         
-        # Initialize the client (Vertex AI or AI Studio)
+        # Initialize the client (Prioritize AI Studio API Key for stability, fallback to Vertex)
         try:
-            if self.project_id:
+            if self.api_key and not self.project_id:
+                print("Initializing AI Studio (using API Key)")
+                self.client = genai.Client(api_key=self.api_key)
+            elif self.project_id:
                 print(f"Initializing Vertex AI (Project: {self.project_id}, Location: {self.location})")
                 self.client = genai.Client(
                     vertexai=True, 
@@ -31,9 +34,7 @@ class GeminiEvaluator:
                     location=self.location
                 )
             else:
-                print("Initializing AI Studio (using API Key)")
-                if not self.api_key:
-                    raise ValueError("Neither GCP_PROJECT_ID nor GOOGLE_API_KEY found.")
+                print("No Project ID found, using AI Studio with API Key")
                 self.client = genai.Client(api_key=self.api_key)
             
             # Dynamically find the best available model
@@ -46,15 +47,13 @@ class GeminiEvaluator:
                 available_models = []
             
             # Preferred models in order of priority based on project availability
+            # Standard production models for Vertex and AI Studio
             preferred = [
-                "gemini-3.1-pro-preview",
-                "gemini-3-flash-preview",
-                "gemini-2.5-pro",
-                "gemini-2.5-flash",
                 "gemini-1.5-pro-002",
                 "gemini-1.5-flash-002",
                 "gemini-1.5-pro",
-                "gemini-1.5-flash"
+                "gemini-1.5-flash",
+                "gemini-1.0-pro"
             ]
             
             self.model_name = None
@@ -70,12 +69,12 @@ class GeminiEvaluator:
             
             # Fallbacks if no match found in list
             if not self.model_name:
-                self.model_name = "gemini-2.5-pro" if self.project_id else "gemini-1.5-flash"
+                self.model_name = "gemini-1.5-flash"
             
             print(f"Gemini model selected: {self.model_name}")
         except Exception as e:
             print(f"Failed to initialize Gemini: {e}")
-            self.model_name = "gemini-2.5-pro" if self.project_id else "gemini-1.5-flash"
+            self.model_name = "gemini-1.5-flash"
 
 
     def scan_text(self, text: str, domain: str) -> dict:
@@ -100,19 +99,21 @@ You are an advanced AI fairness auditor for the IOTA framework. Analyze the foll
 Text to analyze:
 "{text}"
 
-Your evaluation must be rigorous and cover:
+Your evaluation must be rigorous but balanced:
 1. **Implicit & Explicit Bias**: Identify subtle framing or overt discrimination.
 2. **Category Scoring**: Assign a bias probability (0.0 to 1.0) for the following vectors: Gender, Racial, Age, and Socioeconomic.
 3. **Counterfactual Logic**: Briefly consider how the text would change if sensitive attributes were different.
-4. **Fairness Score**: A global score from 0-100 (100 is perfectly fair/equitable).
-5. **Risk Gradient**: 0.0 (Safe) to 1.0 (Highly Biased/Toxic).
+4. **Fairness Score**: A global score from 0-100 (100 is perfectly fair/equitable). 
+   - **CRITICAL**: If the text is a good example of neutral, objective, and equitable language (e.g., focusing on purely technical skills without demographic proxies), reward it with a score above 90.
+   - **CRITICAL**: Do not invent "structural bias" for text that is clearly fair and professional.
+5. **Risk Gradient**: 0.0 (Safe/Fair) to 1.0 (Highly Biased/Toxic).
 
 Provide your analysis in this exact JSON format:
 {{
     "score": <integer 0-100>,
     "risk_gradient": <float 0.0-1.0>,
     "bias_category": <one of: "None", "Subtle", "Structural", "Overt">,
-    "bias_identified": [<list of specific issues found>],
+    "bias_identified": [<list of specific issues found or empty list if none>],
     "fairness_alternative": "<corrected version or empty string if fair>",
     "reasoning": "<detailed analytical rationale>",
     "bias_vectors": {{
@@ -151,13 +152,10 @@ Return ONLY valid JSON.
             error_str = str(e)
             print(f"Gemini API error with model {self.model_name}: {error_str}")
             
-            # If 404, try to fallback to a completely different version
-            if "404" in error_str:
-                print("Attempting emergency fallback...")
-                if "gemini-2.5" not in self.model_name:
-                    self.model_name = "gemini-2.5-pro" if self.project_id else "gemini-1.5-pro"
-                else:
-                    self.model_name = "gemini-3.1-pro-preview" if self.project_id else "gemini-1.5-flash"
+            # If 404, try to fallback to a basic flash model
+            if "404" in error_str or "not found" in error_str.lower():
+                print("Attempting emergency fallback to gemini-1.5-flash...")
+                self.model_name = "gemini-1.5-flash"
                 
                 try:
                     return self.scan_text(text, domain)

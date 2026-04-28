@@ -22,6 +22,9 @@
     "storage",
     "activeTab"
   ],
+  "host_permissions": [
+    "https://iota-backend-925013735036.us-central1.run.app/*"
+  ],
   "web_accessible_resources": [
     {
       "resources": [
@@ -42,7 +45,7 @@
         "<all_urls>"
       ],
       "js": [
-        "src/content.js"
+        "src/neural_observer.js"
       ]
     }
   ]

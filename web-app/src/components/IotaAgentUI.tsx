@@ -10,7 +10,7 @@ const RISK_COLOR = {
   Low:    'text-emerald-600 bg-emerald-50 border-emerald-200',
 };
 
-export default function AuditPlatform() {
+export default function IotaAgentUI() {
   const { setModelName } = useApp();
   const [input, setInput]   = useState('');
   const [result, setResult] = useState<BiasAuditResult | null>(null);
@@ -105,7 +105,7 @@ export default function AuditPlatform() {
               <p className="font-hero-display font-black text-red-800 uppercase text-xs mb-1">Backend Error</p>
               <p className="text-red-700 text-sm leading-relaxed">{error}</p>
               <p className="text-red-500 text-xs mt-2">
-                Make sure the backend is running: <code className="bg-red-100 px-1.5 py-0.5 rounded font-mono">python backend/main.py</code>
+                Make sure the backend is running: <code className="bg-red-100 px-1.5 py-0.5 rounded font-mono">python backend/iota_neural_api.py</code>
               </p>
             </div>
           </motion.div>
