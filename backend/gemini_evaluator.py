@@ -47,13 +47,14 @@ class GeminiEvaluator:
             
             # Preferred models in order of priority based on project availability
             preferred = [
-                "gemini-3.1-pro",
-                "gemini-3-flash",
+                "gemini-3.1-pro-preview",
+                "gemini-3-flash-preview",
                 "gemini-2.5-pro",
                 "gemini-2.5-flash",
+                "gemini-1.5-pro-002",
+                "gemini-1.5-flash-002",
                 "gemini-1.5-pro",
-                "gemini-1.5-flash",
-                "gemini-pro"
+                "gemini-1.5-flash"
             ]
             
             self.model_name = None
@@ -69,12 +70,12 @@ class GeminiEvaluator:
             
             # Fallbacks if no match found in list
             if not self.model_name:
-                self.model_name = "gemini-1.5-flash-002" if self.project_id else "gemini-1.5-flash"
+                self.model_name = "gemini-2.5-pro" if self.project_id else "gemini-1.5-flash"
             
             print(f"Gemini model selected: {self.model_name}")
         except Exception as e:
             print(f"Failed to initialize Gemini: {e}")
-            self.model_name = "gemini-1.5-flash"
+            self.model_name = "gemini-2.5-pro" if self.project_id else "gemini-1.5-flash"
 
 
     def scan_text(self, text: str, domain: str) -> dict:
@@ -150,13 +151,13 @@ Return ONLY valid JSON.
             error_str = str(e)
             print(f"Gemini API error with model {self.model_name}: {error_str}")
             
+            # If 404, try to fallback to a completely different version
             if "404" in error_str:
-                print("Attempting fallback to a different model...")
-                # If flash failed, try pro of the same version or any version
-                if "flash" in self.model_name:
-                    self.model_name = self.model_name.replace("flash", "pro")
+                print("Attempting emergency fallback...")
+                if "gemini-2.5" not in self.model_name:
+                    self.model_name = "gemini-2.5-pro" if self.project_id else "gemini-1.5-pro"
                 else:
-                    self.model_name = "gemini-1.5-pro" if not self.project_id else "publishers/google/models/gemini-2.5-pro"
+                    self.model_name = "gemini-3.1-pro-preview" if self.project_id else "gemini-1.5-flash"
                 
                 try:
                     return self.scan_text(text, domain)
@@ -169,7 +170,7 @@ Return ONLY valid JSON.
                 "bias_category": "None",
                 "bias_identified": [f"Analysis failed: {error_str}"],
                 "fairness_alternative": "",
-                "reasoning": f"Gemini API error: {error_str}. Model: {self.model_name}. Please verify model availability in your region.",
+                "reasoning": f"Gemini API error: {error_str}. Model tried: {self.model_name}. Please verify model availability in your region ({self.location}).",
                 "domain": domain,
                 "original_text": text
             }
